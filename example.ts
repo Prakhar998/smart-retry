@@ -1,4 +1,4 @@
-import { smartRetry, SmartRetry } from "./src";
+import { smartRetry, SmartRetry } from 'adaptive-retry';
 
 // Define the API response type
 interface University {
