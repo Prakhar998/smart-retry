@@ -1,0 +1,39 @@
+{
+  "name": "smart-retry",
+  "version": "0.1.0",
+  "description": "Intelligent retry mechanism that learns from failure patterns - smarter than exponential backoff",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "retry",
+    "backoff",
+    "intelligent",
+    "adaptive",
+    "circuit-breaker",
+    "fault-tolerance",
+    "resilience"
+  ],
+  "author": "Prakhar Tripathi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}
