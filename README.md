@@ -1,11 +1,11 @@
-# smart-retry
+# adaptive-retry
 
 Intelligent retry mechanism that learns from failure patterns — smarter than exponential backoff.
 
-[![npm version](https://img.shields.io/npm/v/smart-retry.svg)](https://www.npmjs.com/package/smart-retry)
+[![npm version](https://img.shields.io/npm/v/adaptive-retry.svg)](https://www.npmjs.com/package/adaptive-retry)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Why SmartRetry?
+## Why AdaptiveRetry?
 
 Traditional exponential backoff is dumb:
 
@@ -15,16 +15,16 @@ Traditional exponential backoff is dumb:
 - Arbitrary multipliers (why 2x? why not 1.5x?)
 - Wastes time (waiting 32s when service recovered in 2s)
 
-**SmartRetry learns from your actual failure patterns** to calculate optimal retry delays.
+**AdaptiveRetry learns from your actual failure patterns** to calculate optimal retry delays.
 
 ## Install
 ```bash
-npm install smart-retry
+npm install adaptive-retry
 ```
 
 ## Quick Start
 ```typescript
-import { smartRetry } from 'smart-retry';
+import { smartRetry } from 'adaptive-retry';
 
 const result = await smartRetry(
   () => fetch('https://api.example.com/data'),
@@ -72,7 +72,7 @@ Total: 1926ms across 4 attempts
 
 ### Error Classification & Delay Strategy
 
-SmartRetry automatically classifies errors and applies appropriate delays:
+AdaptiveRetry automatically classifies errors and applies appropriate delays:
 ```
 TRANSIENT (ECONNRESET)  ━━━━━━━━━━━━━━━━━━        656ms   Fast retry
 TIMEOUT                 ━━━━━━━━━━━━━━━━━━━━━━━   919ms   Medium backoff  
@@ -93,7 +93,7 @@ PERMANENT (404)         ⛔ No retry
 
 ### Circuit Breaker Protection
 
-When an endpoint is clearly down, SmartRetry stops hammering it:
+When an endpoint is clearly down, AdaptiveRetry stops hammering it:
 ```
 Call 1  ━━━━━━━━━━  Error ❌
 Call 2  ━━━━━━━━━━  Error ❌
@@ -117,7 +117,7 @@ Time until retry: 5000ms
 
 ---
 
-## SmartRetry vs Exponential Backoff
+## AdaptiveRetry vs Exponential Backoff
 ```
                     Delay Comparison (5 retries)
      │
@@ -126,9 +126,9 @@ Time until retry: 5000ms
  12s │                                    ┌─────│   Backoff  │
      │                                    │     └───────────┘
   8s │                              ┌─────┘
-     │                              │           ┌───────────┐
-  4s │                        ┌─────┘           │ SmartRetry│
-     │    ┌───────────────────┤                 └───────────┘
+     │                              │           ┌─────────────┐
+  4s │                        ┌─────┘           │AdaptiveRetry│
+     │    ┌───────────────────┤                 └─────────────┘
   2s │────┴─────┬─────┬───────┘
   1s │──────────┴─────┴─────────────────────────────────────
      │
@@ -136,8 +136,8 @@ Time until retry: 5000ms
         1       2     3       4       5       Attempt
 ```
 
-| Attempt | Exponential (2x) | SmartRetry | Savings |
-|:-------:|-----------------:|-----------:|--------:|
+| Attempt | Exponential (2x) | AdaptiveRetry | Savings |
+|:-------:|-----------------:|--------------:|--------:|
 | 1 | 1000ms | 100-300ms | **70%** |
 | 2 | 2000ms | 150-500ms | **75%** |
 | 3 | 4000ms | 200-800ms | **80%** |
@@ -145,13 +145,13 @@ Time until retry: 5000ms
 | 5 | 16000ms | May stop early* | **90%+** |
 | **Total** | **31,000ms** | **~2,000ms** | **94%** |
 
-> \* SmartRetry stops retrying when success probability drops below 10%
+> \* AdaptiveRetry stops retrying when success probability drops below 10%
 
 ---
 
 ## How It Works
 
-SmartRetry calculates delay using learned patterns:
+AdaptiveRetry calculates delay using learned patterns:
 ```
 delay = baseDelay[errorType] 
         × errorWeight 
@@ -175,7 +175,7 @@ delay = baseDelay[errorType]
 
 ### Basic Usage
 ```typescript
-import { smartRetry } from 'smart-retry';
+import { smartRetry } from 'adaptive-retry';
 
 const result = await smartRetry(
   () => fetch('https://api.example.com/users/123'),
@@ -185,6 +185,8 @@ const result = await smartRetry(
 
 ### With Options
 ```typescript
+import { smartRetry } from 'adaptive-retry';
+
 const result = await smartRetry(
   () => fetch('https://api.example.com/data'),
   {
@@ -203,7 +205,7 @@ const result = await smartRetry(
 
 ### Using SmartRetry Class
 ```typescript
-import { SmartRetry } from 'smart-retry';
+import { SmartRetry } from 'adaptive-retry';
 
 const retry = new SmartRetry({
   config: {
@@ -229,7 +231,7 @@ console.log('Avg recovery time:', stats?.avgRecoveryTime);
 
 ### Circuit Breaker
 ```typescript
-import { SmartRetry, CircuitOpenError } from 'smart-retry';
+import { SmartRetry, CircuitOpenError } from 'adaptive-retry';
 
 const retry = new SmartRetry();
 
@@ -247,7 +249,7 @@ retry.resetCircuitBreaker('my-api');
 
 ### Custom Error Classification
 ```typescript
-import { smartRetry, ErrorCategory } from 'smart-retry';
+import { smartRetry, ErrorCategory } from 'adaptive-retry';
 
 const result = await smartRetry(
   () => myApiCall(),
@@ -346,12 +348,14 @@ const retry = new SmartRetry({
 
 For distributed systems:
 ```typescript
+import { SmartRetry } from 'adaptive-retry';
+
 const retry = new SmartRetry({
   storageAdapter: {
     async get(key) { return redis.get(key); },
     async set(key, stats) { await redis.set(key, JSON.stringify(stats)); },
     async delete(key) { await redis.del(key); },
-    async keys() { return redis.keys('smart-retry:*'); },
+    async keys() { return redis.keys('adaptive-retry:*'); },
   }
 });
 
@@ -370,7 +374,7 @@ import type {
   EndpointStats,
   AlgorithmConfig,
   CircuitBreakerConfig,
-} from 'smart-retry';
+} from 'adaptive-retry';
 ```
 
 ---
